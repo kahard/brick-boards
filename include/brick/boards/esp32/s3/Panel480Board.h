@@ -23,6 +23,19 @@ public:
         : touch_(profiles::st7701s_gt911())
 #endif
     { (void)rotation; }
+
+#if BRICK_PANEL480_ENABLE_DISPLAY
+    explicit Panel480Board(St7701sRgbPanelConfig display_config
+#if BRICK_PANEL480_ENABLE_TOUCH
+                           , brick::platform::esp32::touch::Gt911Config touch_config = brick::platform::esp32::s3::profiles::st7701s_gt911()
+#endif
+                           )
+        : display_(display_config)
+#if BRICK_PANEL480_ENABLE_TOUCH
+        , touch_(touch_config)
+#endif
+    {}
+#endif
     static constexpr brick::interfaces::board::BoardDescriptor descriptor() {
         using brick::interfaces::board::Capability;
         return {"480x480 panel", "ESP32-S3", (BRICK_PANEL480_ENABLE_DISPLAY ? static_cast<std::uint32_t>(Capability::display) : 0U) | (BRICK_PANEL480_ENABLE_TOUCH ? static_cast<std::uint32_t>(Capability::touchscreen) : 0U)};
