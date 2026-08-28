@@ -2,6 +2,7 @@
 
 #include "brick/boards/esp32/p4/Jc8012BoardConfig.h"
 #include "brick/interfaces/board/BoardDescriptor.h"
+#include "brick/interfaces/board/IBoard.h"
 #include "brick/interfaces/display/DisplayTypes.h"
 #if BRICK_JC8012_ENABLE_DISPLAY
 #include "brick/platform/esp32/p4/MipiDsiDisplay.h"
@@ -15,7 +16,7 @@
 namespace brick::platform::esp32::p4
 {
 
-class Jc8012Board final
+class Jc8012Board final : public brick::interfaces::board::IBoard
 {
 public:
     explicit Jc8012Board(brick::interfaces::display::Rotation rotation = brick::interfaces::display::Rotation::rotate_0)
@@ -30,12 +31,13 @@ public:
     {
     }
 
-    static constexpr brick::interfaces::board::BoardDescriptor descriptor()
+    static constexpr brick::interfaces::board::BoardDescriptor descriptor_static()
     {
         using brick::interfaces::board::Capability;
         return {"JC8012 10-inch", "ESP32-P4", (BRICK_JC8012_ENABLE_DISPLAY ? static_cast<std::uint32_t>(Capability::display) : 0U) |
                                                         (BRICK_JC8012_ENABLE_TOUCH ? static_cast<std::uint32_t>(Capability::touchscreen) : 0U)};
     }
+    brick::interfaces::board::BoardDescriptor descriptor() const override { return descriptor_static(); }
 
     bool begin()
     {
@@ -51,9 +53,15 @@ public:
 
 #if BRICK_JC8012_ENABLE_DISPLAY
     MipiDsiDisplay& display() { return display_; }
+    brick::interfaces::display::IDisplayDevice* display_device() override { return &display_; }
+#else
+    brick::interfaces::display::IDisplayDevice* display_device() override { return nullptr; }
 #endif
 #if BRICK_JC8012_ENABLE_TOUCH
     touch::Gsl3680Touchscreen& touch() { return touch_; }
+    brick::interfaces::display::ITouchscreen* touchscreen() override { return &touch_; }
+#else
+    brick::interfaces::display::ITouchscreen* touchscreen() override { return nullptr; }
 #endif
 
 private:

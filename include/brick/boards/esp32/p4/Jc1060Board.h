@@ -1,6 +1,7 @@
 #pragma once
 
 #include "brick/interfaces/board/BoardDescriptor.h"
+#include "brick/interfaces/board/IBoard.h"
 #include "brick/boards/esp32/p4/Jc1060BoardConfig.h"
 #if BRICK_JC1060_ENABLE_DISPLAY
 #include "brick/platform/esp32/p4/MipiDsiDisplay.h"
@@ -23,7 +24,7 @@ struct Jc1060Pins
     gpio_num_t backlight = GPIO_NUM_23;
 };
 
-class Jc1060Board
+class Jc1060Board final : public brick::interfaces::board::IBoard
 {
 public:
     Jc1060Board()
@@ -38,7 +39,7 @@ public:
     {
     }
 
-    static constexpr brick::interfaces::board::BoardDescriptor descriptor()
+    static constexpr brick::interfaces::board::BoardDescriptor descriptor_static()
     {
         using brick::interfaces::board::Capability;
         return {"JC1060 7-inch", "ESP32-P4", (BRICK_JC1060_ENABLE_DISPLAY ? static_cast<std::uint32_t>(Capability::display) : 0U) |
@@ -46,6 +47,7 @@ public:
                                                      (BRICK_JC1060_ENABLE_BACKLIGHT ? static_cast<std::uint32_t>(Capability::backlight) : 0U) |
                                                      (BRICK_JC1060_ENABLE_SDMMC ? static_cast<std::uint32_t>(Capability::sd_card) : 0U)};
     }
+    brick::interfaces::board::BoardDescriptor descriptor() const override { return descriptor_static(); }
 
     static constexpr Jc1060Pins pins() { return {}; }
 
@@ -67,9 +69,15 @@ public:
 
 #if BRICK_JC1060_ENABLE_DISPLAY
     MipiDsiDisplay& display() { return display_; }
+    brick::interfaces::display::IDisplayDevice* display_device() override { return &display_; }
+#else
+    brick::interfaces::display::IDisplayDevice* display_device() override { return nullptr; }
 #endif
 #if BRICK_JC1060_ENABLE_TOUCH
     touch::Gt911Touchscreen& touch() { return touch_; }
+    brick::interfaces::display::ITouchscreen* touchscreen() override { return &touch_; }
+#else
+    brick::interfaces::display::ITouchscreen* touchscreen() override { return nullptr; }
 #endif
 #if BRICK_JC1060_ENABLE_SDMMC
     SdmmcFileSystem& sdmmc() { return sdmmc_; }
