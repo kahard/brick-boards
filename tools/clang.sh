@@ -11,4 +11,9 @@ case "$MODE" in
   check|format-check) FLAGS=(--dry-run --Werror --verbose) ;;
   *) echo "Usage: $0 [format|format-check]" >&2; exit 1 ;;
 esac
-find . \( -path './.git' -o -path './.git/*' \) -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.cxx' -o -name '*.h' \) -print0 | xargs -0 clang-format "${FLAGS[@]}"
+index=0
+while IFS= read -r -d '' file; do
+  index=$((index + 1))
+  echo "Formatting [$index] $file"
+  clang-format "${FLAGS[@]}" "$file"
+done < <(find . \( -path './.git' -o -path './.git/*' \) -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.cxx' -o -name '*.h' \) -print0)
