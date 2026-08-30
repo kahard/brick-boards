@@ -15,6 +15,7 @@
 #include "brick/platform/esp32/SdSpiFileSystem.h"
 #endif
 #include "brick/platform/esp32/FreeRtosTime.h"
+#include "brick/platform/esp32/EspIdfLogger.h"
 namespace brick::platform::esp32::s3 {
 class Panel480Board final : public brick::interfaces::board::IBoard {
 public:
@@ -70,6 +71,7 @@ public:
     brick::interfaces::display::ITouchscreen* touchscreen() override { return nullptr; }
 #endif
     brick::interfaces::time::ITimeProvider& time() { return time_; }
+    brick::interfaces::logging::ILogger& logger() { return logger_; }
 #if BRICK_PANEL480_ENABLE_SD
     brick::platform::esp32::SdSpiFileSystem& sd_card() { return sd_; }
 #endif
@@ -78,6 +80,11 @@ public:
 #endif
 private:
     brick::platform::esp32::FreeRtosTime time_;
+#if BRICK_PANEL480_ENABLE_LOGGING
+    brick::platform::esp32::EspIdfLogger logger_{BRICK_PANEL480_LOG_LEVEL};
+#else
+    brick::platform::esp32::NullLogger logger_;
+#endif
 #if BRICK_PANEL480_ENABLE_DISPLAY
     St7701sRgbDisplay display_;
 #endif
