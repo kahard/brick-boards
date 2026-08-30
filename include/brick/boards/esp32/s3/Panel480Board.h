@@ -36,16 +36,10 @@ public:
 #if BRICK_PANEL480_ENABLE_TOUCH
                            , brick::platform::esp32::touch::Gt911Config touch_config = brick::platform::esp32::s3::profiles::st7701s_gt911()
 #endif
-#if BRICK_PANEL480_ENABLE_SD
-        , sd_(brick::platform::esp32::SdSpiFileSystemConfig{GPIO_NUM_42, GPIO_NUM_48, GPIO_NUM_47, GPIO_NUM_41})
-#endif
                            )
         : display_(display_config)
 #if BRICK_PANEL480_ENABLE_TOUCH
         , touch_(touch_config)
-#endif
-#if BRICK_PANEL480_ENABLE_SD
-    brick::platform::esp32::SdSpiFileSystem& sd_card() { return sd_; }
 #endif
     {}
 #endif
@@ -73,6 +67,9 @@ public:
     brick::interfaces::display::ITouchscreen* touchscreen() override { return &touch_; }
 #else
     brick::interfaces::display::ITouchscreen* touchscreen() override { return nullptr; }
+#endif
+#if BRICK_PANEL480_ENABLE_SD
+    brick::platform::esp32::SdSpiFileSystem& sd_card() { return sd_; }
 #endif
 #if !BRICK_PANEL480_ENABLE_DISPLAY
     brick::interfaces::display::IDisplayDevice* display_device() override { return nullptr; }
