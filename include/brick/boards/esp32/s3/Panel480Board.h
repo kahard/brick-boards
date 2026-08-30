@@ -44,6 +44,13 @@ public:
         , touch_(touch_config)
 #endif
     {}
+    static St7701sRgbPanelConfig double_buffered_config()
+    {
+        auto config = profiles::st7701s_480x480();
+        config.pixel_clock_hz = 12'000'000;
+        config.frame_buffer_count = 2;
+        return config;
+    }
 #endif
     static constexpr brick::interfaces::board::BoardDescriptor descriptor_static() {
         using brick::interfaces::board::Capability;
