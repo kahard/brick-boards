@@ -14,6 +14,7 @@
 #if BRICK_PANEL480_ENABLE_SD
 #include "brick/platform/esp32/SdSpiFileSystem.h"
 #endif
+#include "brick/platform/esp32/FreeRtosTime.h"
 namespace brick::platform::esp32::s3 {
 class Panel480Board final : public brick::interfaces::board::IBoard {
 public:
@@ -68,6 +69,7 @@ public:
 #else
     brick::interfaces::display::ITouchscreen* touchscreen() override { return nullptr; }
 #endif
+    brick::interfaces::time::ITimeProvider& time() { return time_; }
 #if BRICK_PANEL480_ENABLE_SD
     brick::platform::esp32::SdSpiFileSystem& sd_card() { return sd_; }
 #endif
@@ -75,6 +77,7 @@ public:
     brick::interfaces::display::IDisplayDevice* display_device() override { return nullptr; }
 #endif
 private:
+    brick::platform::esp32::FreeRtosTime time_;
 #if BRICK_PANEL480_ENABLE_DISPLAY
     St7701sRgbDisplay display_;
 #endif
