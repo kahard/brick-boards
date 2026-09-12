@@ -1,9 +1,0 @@
-#pragma once
-
-#ifndef BRICK_JC8012_ENABLE_DISPLAY
-#define BRICK_JC8012_ENABLE_DISPLAY 1
-#endif
-
-#ifndef BRICK_JC8012_ENABLE_TOUCH
-#define BRICK_JC8012_ENABLE_TOUCH 1
-#endif

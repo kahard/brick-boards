@@ -2,7 +2,7 @@
 
 #include "brick/platform/esp32/touch/Gt911Touchscreen.h"
 
-namespace brick::platform::esp32::p4::profiles
+namespace brick::platform::esp32::p4::jc1060::detail
 {
 
 inline touch::Gt911Config jc1060_gt911()
@@ -17,4 +17,4 @@ inline touch::Gt911Config jc1060_gt911()
     return config;
 }
 
-} // namespace brick::platform::esp32::p4::profiles
+} // namespace brick::platform::esp32::p4::jc1060::detail

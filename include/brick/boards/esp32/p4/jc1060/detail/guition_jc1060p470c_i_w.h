@@ -2,9 +2,9 @@
 
 #include <cstdint>
 
-#include "brick/boards/esp32/p4/profiles/jc1060_1024x600.h"
+#include "brick/boards/esp32/p4/jc1060/detail/jc1060_1024x600.h"
 
-namespace brick::platform::esp32::p4::profiles
+namespace brick::platform::esp32::p4::jc1060::detail
 {
 
 // Guition JC1060P470C-I-W family, 7-inch 1024x600 panel.
@@ -33,4 +33,4 @@ inline MipiDsiPanelConfig guition_jc1060p470c_i_w()
     return jc1060_1024x600(guition_jc1060p470c_i_w_init_sequence, sizeof(guition_jc1060p470c_i_w_init_sequence));
 }
 
-} // namespace brick::platform::esp32::p4::profiles
+} // namespace brick::platform::esp32::p4::jc1060::detail

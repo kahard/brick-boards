@@ -2,7 +2,7 @@
 
 #include "brick/platform/esp32/p4/MipiDsiDisplay.h"
 
-namespace brick::platform::esp32::p4::profiles
+namespace brick::platform::esp32::p4::jc1060::detail
 {
 
 inline MipiDsiPanelConfig jc1060_1024x600(const std::uint8_t* init_sequence = nullptr,
@@ -28,4 +28,4 @@ inline MipiDsiPanelConfig jc1060_1024x600(const std::uint8_t* init_sequence = nu
     return config;
 }
 
-} // namespace brick::platform::esp32::p4::profiles
+} // namespace brick::platform::esp32::p4::jc1060::detail

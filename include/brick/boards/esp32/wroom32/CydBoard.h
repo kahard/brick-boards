@@ -1,54 +1,47 @@
 #pragma once
 
-#include "brick/boards/esp32/detail/Logger.h"
-#include "brick/boards/esp32/detail/Peripheral.h"
-#include "brick/boards/esp32/p4/jc1060/detail/guition_jc1060p470c_i_w.h"
-#include "brick/boards/esp32/p4/jc1060/detail/jc1060_gt911.h"
-#include "brick/interfaces/board/BoardDescriptor.h"
-#include "brick/interfaces/board/IBoard.h"
-#include "brick/platform/esp32/EspIdfLogger.h"
-#include "brick/platform/esp32/FreeRtosTime.h"
-#include "brick/platform/esp32/p4/MipiDsiDisplay.h"
-#include "brick/platform/esp32/p4/SdmmcFileSystem.h"
-#include "brick/platform/esp32/touch/Gt911Touchscreen.h"
-#include "driver/gpio.h"
 #include <cstdint>
 
-namespace brick::platform::esp32::p4
+#include "brick/boards/esp32/detail/Logger.h"
+#include "brick/boards/esp32/detail/Peripheral.h"
+#include "brick/interfaces/board/BoardDescriptor.h"
+#include "brick/interfaces/board/IBoard.h"
+#include "brick/platform/esp32/FreeRtosTime.h"
+#include "brick/platform/esp32/touch/Xpt2046Touchscreen.h"
+#include "brick/platform/esp32/wroom32/profiles/cyd_ili9341_320x240.h"
+#include "brick/platform/esp32/wroom32/profiles/cyd_xpt2046.h"
+#include "driver/gpio.h"
+
+namespace brick::platform::esp32
 {
 
-struct Jc1060DefaultFeatures
+struct CydDefaultFeatures
 {
     static constexpr bool display = true;
     static constexpr bool touch = true;
     static constexpr bool backlight = true;
-    static constexpr bool sdmmc = true;
     static constexpr bool logging = true;
     static constexpr int log_level = 0;
 };
 
-template <typename Features = Jc1060DefaultFeatures>
-class Jc1060BoardTemplate final : public brick::interfaces::board::IBoard
+template <typename Features = CydDefaultFeatures> class CydBoardTemplate final : public brick::interfaces::board::IBoard
 {
   public:
-    Jc1060BoardTemplate() : logger_(Features::log_level)
+    CydBoardTemplate() : logger_(Features::log_level)
     {
         if constexpr (Features::display)
-            display_.emplace(jc1060::detail::guition_jc1060p470c_i_w());
+            display_.emplace(profiles::cyd_ili9341_320x240());
         if constexpr (Features::touch)
-            touch_.emplace(jc1060::detail::jc1060_gt911());
-        if constexpr (Features::sdmmc)
-            sdmmc_.emplace();
+            touch_.emplace(profiles::cyd_xpt2046());
     }
 
     static constexpr brick::interfaces::board::BoardDescriptor descriptor_static()
     {
         using brick::interfaces::board::Capability;
-        return {"JC1060 7-inch", "ESP32-P4",
+        return {"CYD 2.8-inch", "ESP32-WROOM",
                 (Features::display ? static_cast<std::uint32_t>(Capability::display) : 0U) |
                     (Features::touch ? static_cast<std::uint32_t>(Capability::touchscreen) : 0U) |
-                    (Features::backlight ? static_cast<std::uint32_t>(Capability::backlight) : 0U) |
-                    (Features::sdmmc ? static_cast<std::uint32_t>(Capability::sd_card) : 0U)};
+                    (Features::backlight ? static_cast<std::uint32_t>(Capability::backlight) : 0U)};
     }
 
     brick::interfaces::board::BoardDescriptor descriptor() const override { return descriptor_static(); }
@@ -60,8 +53,8 @@ class Jc1060BoardTemplate final : public brick::interfaces::board::IBoard
             ok = display_.begin() && ok;
         if constexpr (Features::backlight)
         {
-            gpio_set_direction(GPIO_NUM_23, GPIO_MODE_OUTPUT);
-            gpio_set_level(GPIO_NUM_23, 1);
+            gpio_set_direction(GPIO_NUM_21, GPIO_MODE_OUTPUT);
+            gpio_set_level(GPIO_NUM_21, 1);
         }
         if constexpr (Features::touch)
             ok = touch_.begin() && ok;
@@ -82,18 +75,18 @@ class Jc1060BoardTemplate final : public brick::interfaces::board::IBoard
         return nullptr;
     }
 
-    MipiDsiDisplay& display() { return display_.get(); }
-    touch::Gt911Touchscreen& touch() { return touch_.get(); }
-    SdmmcFileSystem& sdmmc() { return sdmmc_.get(); }
+    Ili9341SpiDisplay& display() { return display_.get(); }
+    touch::Xpt2046Touchscreen& touch() { return touch_.get(); }
     brick::interfaces::time::ITimeProvider& time() { return time_; }
     brick::interfaces::logging::ILogger& logger() { return logger_.get(); }
 
   private:
-    brick::platform::esp32::FreeRtosTime time_;
+    FreeRtosTime time_;
     brick::boards::esp32::detail::Logger<Features::logging> logger_;
-    brick::boards::esp32::detail::Peripheral<Features::display, MipiDsiDisplay> display_;
-    brick::boards::esp32::detail::Peripheral<Features::touch, touch::Gt911Touchscreen> touch_;
-    brick::boards::esp32::detail::Peripheral<Features::sdmmc, SdmmcFileSystem> sdmmc_;
+    brick::boards::esp32::detail::Peripheral<Features::display, Ili9341SpiDisplay> display_;
+    brick::boards::esp32::detail::Peripheral<Features::touch, touch::Xpt2046Touchscreen> touch_;
 };
 
-} // namespace brick::platform::esp32::p4
+using CydBoard = CydBoardTemplate<>;
+
+} // namespace brick::platform::esp32
