@@ -8,13 +8,13 @@
 #include "brick/interfaces/board/BoardDescriptor.h"
 #include "brick/interfaces/board/IBoard.h"
 #include "brick/platform/esp32/FreeRtosTime.h"
+#include "brick/platform/esp32/PwmBacklight.h"
 #include "brick/platform/esp32/touch/Xpt2046Touchscreen.h"
 #include "brick/platform/esp32/wroom32/CydSdSpiFileSystem.h"
 #include "brick/platform/esp32/wroom32/CydTouchscreen.h"
 #include "brick/platform/esp32/wroom32/profiles/cyd_ili9341_320x240.h"
 #include "brick/platform/esp32/wroom32/profiles/cyd_sd_spi.h"
 #include "brick/platform/esp32/wroom32/profiles/cyd_xpt2046.h"
-#include "driver/gpio.h"
 
 namespace brick::platform::esp32
 {
@@ -74,6 +74,8 @@ template <typename Features = CydDefaultFeatures> class CydBoardTemplate final :
     {
         if constexpr (Features::display)
             display_.emplace(profiles::cyd_ili9341_320x240());
+        if constexpr (Features::backlight)
+            backlight_.emplace(GPIO_NUM_21);
         if constexpr (Features::touch)
             touch_.emplace(profiles::cyd_xpt2046());
         if constexpr (kSdEnabled)
@@ -103,16 +105,7 @@ template <typename Features = CydDefaultFeatures> class CydBoardTemplate final :
         if constexpr (Features::display)
             ok = display_.begin() && ok;
         if constexpr (Features::backlight)
-        {
-            gpio_config_t backlight_config = {};
-            backlight_config.pin_bit_mask = 1ULL << GPIO_NUM_21;
-            backlight_config.mode = GPIO_MODE_OUTPUT;
-            backlight_config.pull_up_en = GPIO_PULLUP_DISABLE;
-            backlight_config.pull_down_en = GPIO_PULLDOWN_DISABLE;
-            backlight_config.intr_type = GPIO_INTR_DISABLE;
-            ok = gpio_config(&backlight_config) == ESP_OK && ok;
-            ok = gpio_set_level(GPIO_NUM_21, 1) == ESP_OK && ok;
-        }
+            ok = backlight_.begin() && ok;
         if constexpr (Features::touch)
             ok = touch_.begin() && ok;
         return ok;
@@ -143,6 +136,11 @@ template <typename Features = CydDefaultFeatures> class CydBoardTemplate final :
             return muxed_touch_.get();
         return touch_.get();
     }
+    brick::interfaces::display::IBacklight& backlight()
+    {
+        static_assert(Features::backlight, "Enable Features::backlight before accessing the CYD backlight");
+        return backlight_.get();
+    }
     wroom32::CydSdSpiFileSystem& sd()
     {
         static_assert(kSdEnabled, "Enable Features::sd before accessing the CYD SD card");
@@ -156,6 +154,7 @@ template <typename Features = CydDefaultFeatures> class CydBoardTemplate final :
     brick::boards::esp32::detail::Logger<Features::logging> logger_;
     brick::boards::esp32::detail::Peripheral<kSdEnabled, wroom32::CydSpi3PinMux> spi3_pin_mux_;
     brick::boards::esp32::detail::Peripheral<Features::display, Ili9341SpiDisplay> display_;
+    brick::boards::esp32::detail::Peripheral<Features::backlight, PwmBacklight> backlight_;
     brick::boards::esp32::detail::Peripheral<Features::touch, touch::Xpt2046Touchscreen> touch_;
     brick::boards::esp32::detail::Peripheral<Features::touch && kSdEnabled, wroom32::CydTouchscreen> muxed_touch_;
     brick::boards::esp32::detail::Peripheral<kSdEnabled, wroom32::CydSdSpiFileSystem> sd_;
